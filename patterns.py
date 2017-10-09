@@ -38,7 +38,8 @@ def build_subpatterns():
         (SubPattern.DECLARATION,
             (Token.FLOAT, Token.IDENT, '=', Token.NUMBER), lambda *args: []),
         (SubPattern.DECLARATION,
-            (Token.INT, Token.IDENT, '=', Token.NUMBER), lambda token, *args: Node(token, children=( args[0], args[1], args[3]) ) ),
+            (Token.INT, Token.IDENT, '=', Token.NUMBER),
+            lambda token, *args: Node(token, children=( args[0], args[1], args[3]) ) ),
     )
 
 
