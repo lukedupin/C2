@@ -1,13 +1,21 @@
 from enum import Enum, auto
 from scanner import Token
 
+class AutoPattern(Enum):
+    def _generate_next_value_(name, start, count, last_values):
+        return start + count + 1000
 
-class Pattern(Enum):
+class AutoSubPattern(Enum):
+    def _generate_next_value_(name, start, count, last_values):
+        return start + count + 2000
+
+
+class Pattern(AutoPattern):
     AUTO_CLASS          = auto()
     TEMPLATE_CLASS      = auto()
 
 
-class SubPattern(Enum):
+class SubPattern(AutoSubPattern):
     TEMPLATE_LIST       = auto()
     DECLARATION         = auto()
 
@@ -22,35 +30,54 @@ class Node:
             self.children.append( c if c is Node else Node(c) )
 
 
+def is_token( item ):
+    return int(item) < 1000
+
+
 def build_subpatterns():
-    return (
+    patterns = (
         (SubPattern.TEMPLATE_LIST,
-            (SubPattern.TEMPLATE_LIST, ',', Token.IDENT), lambda node: []),
+            (SubPattern.TEMPLATE_LIST, ',', Token.IDENT),
+            lambda token, *args: Node(token, sibling=args[0] ) ),
         (SubPattern.TEMPLATE_LIST,
-            (SubPattern.TEMPLATE_LIST, ',', SubPattern.DECLARATION), lambda node: []),
+            (SubPattern.TEMPLATE_LIST, ',', SubPattern.DECLARATION),
+            lambda token, *args: Node(token, sibling=args[0] ) ),
         (SubPattern.TEMPLATE_LIST,
-            (Token.IDENT), lambda node: []),
+            (Token.IDENT),
+            lambda token, *args: Node(token, children=( args[0], ) ) ),
         (SubPattern.TEMPLATE_LIST,
-            (SubPattern.DECLARATION), lambda node: []),
+            (SubPattern.DECLARATION),
+            lambda token, *args: Node(token, children=( args[0], ) ) ),
 
         (SubPattern.DECLARATION,
-            (Token.DOUBLE, Token.IDENT, '=', Token.NUMBER), lambda *args: []),
+            (Token.DOUBLE, Token.IDENT, '=', Token.NUMBER),
+            lambda token, *args: Node(token, children=( args[0], args[1], args[3]) ) ),
         (SubPattern.DECLARATION,
-            (Token.FLOAT, Token.IDENT, '=', Token.NUMBER), lambda *args: []),
+            (Token.FLOAT, Token.IDENT, '=', Token.NUMBER),
+            lambda token, *args: Node(token, children=( args[0], args[1], args[3]) ) ),
         (SubPattern.DECLARATION,
             (Token.INT, Token.IDENT, '=', Token.NUMBER),
             lambda token, *args: Node(token, children=( args[0], args[1], args[3]) ) ),
     )
 
+    # Combine the rules down to a hash
+    result = {}
+    for m, p, b in patterns:
+        if m not in result:
+            result[m] = []
+        result[m].append( (p, b) )
+
+    return result
+
 
 def build_paterns():
     return (
         (Pattern.AUTO_CLASS,
-            (Token.AUTO, Token.CLASS, Token.IDENT)
-         ),
+            (Token.AUTO, Token.CLASS, Token.IDENT),
+            lambda token, *args: Node(token, children=( args[2]) ) ),
         (Pattern.TEMPLATE_CLASS,
-            (Token.CLASS, Token.IDENT, '<', SubPattern.TEMPLATE_LIST, '>' )
-         ),
+            (Token.CLASS, Token.IDENT, '<', SubPattern.TEMPLATE_LIST, '>' ),
+            lambda token, *args: Node(token, children=( args[1], args[3] ) ) ),
     )
 
 
@@ -66,24 +93,54 @@ def group_patterns( items ):
 
     return pat
 
+def recursive_match( tokens, match, patterns, build, sub_patterns, token_idx = None ):
+    # Deals with token start
+    def token_start( token_idx, pattern, tokens, token_len ):
+        # Is this my first token?  Find the starting place
+        if token_idx is not None:
+            return token_idx
 
-def match_pattern( tokens, patterns, indexes ):
+        for t_idx in range(token_len):
+            if tokens[t_idx] == pattern:
+                return t_idx
+
+        return None
+
+    #Setup my variables
     token_len = len(tokens)
+    nodes = []
 
+    # Run through the patterns
+    for pattern in patterns:
+        # Should we recurse the pattern?
+        if isinstance( pattern, Token ):
+            # Handle the start of the index
+            token_idx = token_start( token_idx, pattern, tokens, token_len )
+            if token_idx is None or token_idx >= token_len:
+                return (None, 0)
+
+            # Go through the tokens, matching them
+            if pattern != tokens[token_idx]:
+                nodes.append( tokens[token_idx] )
+            else:
+                return (None, 0)
+            token_idx += 1
+
+        else:
+            node, token_idx = recursive_match( tokens, match, patterns, build, sub_patterns, token_idx )
+            if node is None:
+                return (None, 0)
+
+            nodes.append( node )
+
+    return build( match, nodes ), token_idx + 1
+
+
+def match_pattern( tokens, pattern_matches, sub_patterns ):
     # Go through the indexes, attempting to match a pattern
-    for count in indexes:
-        if token_len < count:
-            return (None, None)
-        offset = token_len - count
-
-        for pattern, items in patterns[count]:
-            hit = True
-            for i in range(count):
-                if tokens[i + offset][0] != items[i]:
-                    hit = False
-                    break
-
-            if hit:
-                return (pattern, offset)
+    for match, patterns, build in pattern_matches:
+        node, unused = recursive_match( tokens, match, patterns, build, sub_patterns )
+        if node is not None:
+            print( node )
 
     return (None, None)
