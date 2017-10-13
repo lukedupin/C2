@@ -30,15 +30,22 @@ class Token(AutoToken):
     ASSIGN_CONST = auto()
 
 
+class Scanner:
+    def __init__(self, pattern, token):
+        self.pattern = pattern
+        self.token = token
+
+
 class ScannerToken:
-    def __init__(self, rule, match, line):
-        self.Rule = rule
-        self.Match = match
-        self.Line = line
+    def __init__(self, token, value, line):
+        self.token = token
+        self.value = value
+        self.line = line
 
 
-def build_rules():
-    return (
+def build_patterns():
+    return [Scanner( x[0], x[1] ) for x in (
+
         ('//.*\n',                      None),
 
         ('[\(\)\[\]\},;]',              Token.ANY),
@@ -82,29 +89,29 @@ def build_rules():
         ("\t+",                         None),
 
         (".",                           Token.ANY),
-    )
+    )]
 
 
-def scanner( rules, line, line_number ):
+def scanner( patterns, line, line_number ):
     hit = True
     while len(line) > 0:
         if not hit:
             return False
         hit = False
 
-        # go through my rules looking for a match
-        for rule in rules:
+        # go through my patterns looking for a match
+        for pattern in patterns:
             # Does this match?
-            match = re.match("^(%s)" % rule[0], line )
+            match = re.match("^(%s)" % pattern.pattern, line )
             if match is None:
                 continue
 
-            # Send out the matched rule
-            if rule[1] is not None:
-                if rule[1] == Token.ANY:
-                    yield ScannerToken( ord(match[0]), match[0], line_number )
+            # Send out the matched pattern
+            if pattern.token is not None:
+                if pattern.token == Token.ANY:
+                    yield ScannerToken( match[0], match[0], line_number )
                 else:
-                    yield ScannerToken( rule[1], match[0], line_number )
+                    yield ScannerToken( pattern.token, match[0], line_number )
 
             # Trim the line
             line = line[len(match[0]):]
