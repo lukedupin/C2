@@ -1,5 +1,5 @@
-from parser import Symbol, SubSymbol, Node
-from scanner import Token, ScannerToken
+from lex_rules import Token, ScannerToken
+from symbol_table import Symbol, SubSymbol, Node
 
 def handleTemplateClass( node, start, end ):
     tokens = [ ScannerToken( Token.TEMPLATE, "template", node.children[0].line),

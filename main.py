@@ -2,8 +2,10 @@
 
 import sys
 
-from scanner import build_patterns, scanner
-from parser import build_productions, build_subproductions, parser, Symbol
+from scanner import scanner
+from parser import parser
+from lex_rules import build_patterns
+from symbol_table import build_productions, build_subproductions, Symbol
 
 from handler_auto_class import handleAutoClass
 from handler_template_class import handleTemplateClass
