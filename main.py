@@ -15,24 +15,20 @@ def main( argv ):
     productions = build_productions()
     sub_productions = build_subproductions()
 
-    depth = 0
     tokens = []
 
     argv.pop(0)
     for filename in argv:
         line_count = 0
+        lines = []
+
+        # Read in the file contents
         for line in open( filename ).readlines():
             line_count += 1
 
             # Parse the tokens
             for token in scanner( patterns, line, line_count ):
                 tokens.append( token )
-
-                # Track the depth
-                if token.token == '{':
-                    depth += 1
-                elif token.token == '}':
-                    depth -= 1
 
                 # Are we at the end of a statement?
                 if token.token != ';' and token.token != '{' and token.token != '}':
@@ -48,7 +44,12 @@ def main( argv ):
                         elif node.production == Symbol.TEMPLATE_CLASS:
                             tokens = handleTemplateClass( node, tokens[0:start_idx], tokens[end_idx:] )
 
+                #Store my updated line and continue
+                lines.append( TokenExporter( tokens, exporters ) )
                 tokens.clear()
+
+        # Dump all the now collected tokens into the output file
+        exporter.store()
 
 
 

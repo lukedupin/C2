@@ -66,7 +66,6 @@ def build_patterns():
 
         ("double",                      Token.DOUBLE),
 
-
         ("return",                      Token.RETURN),
 
         ("while",                       Token.WHILE),
