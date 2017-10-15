@@ -25,6 +25,8 @@ class Symbol(AutoProduction):
 class SubSymbol(AutoSubProduction):
     TEMPLATE_LIST       = auto()
     DECLARATION         = auto()
+    DECLARATION_ASSIGN  = auto()
+    TYPE                = auto()
 
 
 class Node:
@@ -33,8 +35,13 @@ class Node:
         self.children = []
         self.sibling = sibling
 
-        for c in children:
-            self.children.append( c )# if c is Node else Node(c) )
+        # Add the children
+        if isinstance( children, list ) or isinstance( children, tuple ):
+            for c in children:
+                self.children.append( c )# if c is Node else Node(c) )
+
+        else:
+            self.children = (children, )
 
     def add_child(self, child):
         self.children.append( child )
@@ -51,30 +58,45 @@ def build_subproductions():
             (Token.IDENT, ',', SubSymbol.TEMPLATE_LIST),
             lambda production, tokens: tokens[2].add_child( tokens[0] ) ),
         (SubSymbol.TEMPLATE_LIST,
+            (SubSymbol.DECLARATION_ASSIGN, ',', SubSymbol.TEMPLATE_LIST),
+            lambda production, tokens: tokens[2].add_child( tokens[0] ) ),
+        (SubSymbol.TEMPLATE_LIST,
             (SubSymbol.DECLARATION, ',', SubSymbol.TEMPLATE_LIST),
             lambda production, tokens: tokens[2].add_child( tokens[0] ) ),
         (SubSymbol.TEMPLATE_LIST,
-            (Token.IDENT,),
+            (Token.IDENT),
             lambda production, tokens: Node(production, children=( tokens[0], ) ) ),
         (SubSymbol.TEMPLATE_LIST,
-            (SubSymbol.DECLARATION,),
+            (SubSymbol.DECLARATION_ASSIGN),
+            lambda production, tokens: Node(production, children=( tokens[0], ) ) ),
+        (SubSymbol.TEMPLATE_LIST,
+            (SubSymbol.DECLARATION),
             lambda production, tokens: Node(production, children=( tokens[0], ) ) ),
 
         (SubSymbol.DECLARATION,
-            (Token.DOUBLE, Token.IDENT, '=', Token.NUMBER),
-            lambda production, tokens: Node(production, children=( tokens[0], tokens[1], tokens[3]) ) ),
-        (SubSymbol.DECLARATION,
-            (Token.FLOAT, Token.IDENT, '=', Token.NUMBER),
-            lambda production, tokens: Node(production, children=( tokens[0], tokens[1], tokens[3]) ) ),
-        (SubSymbol.DECLARATION,
-            (Token.INT, Token.IDENT, '=', Token.NUMBER),
-            lambda production, tokens: Node(production, children=( tokens[0], tokens[1], tokens[3]) ) ),
+            (SubSymbol.TYPE, Token.IDENT),
+            lambda production, tokens: Node(production, children=( tokens[0].children[0], tokens[1]) ) ),
+
+        (SubSymbol.DECLARATION_ASSIGN,
+            (SubSymbol.TYPE, Token.IDENT, '=', Token.NUMBER),
+            lambda production, tokens: Node(production, children=( tokens[0].children[0], tokens[1], tokens[3]) ) ),
+
+        (SubSymbol.TYPE,
+            (Token.DOUBLE),
+            lambda production, tokens: Node(production, children=( tokens[0]) ) ),
+        (SubSymbol.TYPE,
+            (Token.FLOAT),
+            lambda production, tokens: Node(production, children=( tokens[0]) ) ),
+        (SubSymbol.TYPE,
+            (Token.INT),
+            lambda production, tokens: Node(production, children=( tokens[0]) ) ),
     )
 
     # Combine the productions down to a hash
     result = {}
     for x in productions:
-        p = Production( x[0], x[1], x[2] )
+        symbols = x[1] if isinstance( x[1], tuple ) else (x[1], )
+        p = Production( x[0], symbols, x[2] )
         if p.production not in result:
             result[p.production] = []
         result[p.production].append( p )
@@ -93,7 +115,7 @@ def build_productions():
     )]
 
 
-def recursive_parser( tokens, production, symbols, build, sub_productions, token_idx = None ):
+def parser( tokens, production, symbols, build, sub_productions, token_idx = None ):
     # Deals with token start
     def token_start( token_idx, symbol, tokens, token_len ):
         # Is this my first token?  Find the starting place
@@ -129,7 +151,7 @@ def recursive_parser( tokens, production, symbols, build, sub_productions, token
         elif symbol in sub_productions:
             node = None
             for sub in sub_productions[symbol]:
-                node, token_tmp = recursive_parser( tokens, sub.production, sub.symbols, sub.build, sub_productions, token_idx )
+                node, token_tmp = parser( tokens, sub.production, sub.symbols, sub.build, sub_productions, token_idx )
                 if node is not None:
                     token_idx = token_tmp
                     break
@@ -144,13 +166,3 @@ def recursive_parser( tokens, production, symbols, build, sub_productions, token
             return (None, 0)
 
     return build( production, nodes ), token_idx
-
-
-def parser( tokens, productions, sub_productions ):
-    # Go through the indexes, attempting to match a symbol
-    for production in productions:
-        node, unused = recursive_parser( tokens, production.production, production.symbols, production.build, sub_productions )
-        if node is not None:
-            return node
-
-    return None

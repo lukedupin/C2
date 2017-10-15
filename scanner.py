@@ -16,6 +16,8 @@ class Token(AutoToken):
     RETURN      = auto()
     WHILE       = auto()
     BREAK       = auto()
+    TEMPLATE    = auto()
+    TYPENAME    = auto()
     IDENT       = auto()
     NUMBER      = auto()
     FLOAT       = auto()

@@ -5,19 +5,24 @@ import sys
 from scanner import build_patterns, scanner
 from parser import build_productions, build_subproductions, parser, Symbol
 
+from handler_auto_class import handleAutoClass
+from handler_template_class import handleAutoClass
+
 def main( argv ):
     patterns = build_patterns()
     productions = build_productions()
     sub_productions = build_subproductions()
 
-    tokens = []
     depth = 0
+    tokens = []
 
     argv.pop(0)
     for filename in argv:
         line_count = 0
         for line in open( filename ).readlines():
             line_count += 1
+
+            # Parse the tokens
             for token in scanner( patterns, line, line_count ):
                 tokens.append( token )
 
@@ -27,18 +32,22 @@ def main( argv ):
                 elif token.token == '}':
                     depth -= 1
 
-                # Check if we can match a patter
-                if token.token == ';' or token.token == '{':
-                    node = parser( tokens, productions, sub_productions )
+                # Are we at the end of a statement?
+                if token.token != ';' and token.token != '{' and token.token != '}':
+                    continue
+
+                # Go through the indexes, attempting to match a symbol
+                for production in productions:
+                    node, unused = parser( tokens, production.production, production.symbols, production.build, sub_productions )
                     if node is not None:
                         if node.production == Symbol.AUTO_CLASS:
-                            print("[AUTO] class %s" % node.children[0].value )
-                        elif node.production == Symbol.TEMPLATE_CLASS:
-                            print("Template class %s with template %s" % (node.children[0].value, str(node.children[1].children)) )
+                            tokens = handleAutoClass( node )
 
-                # end of the statement
-                if token.token == ';' or token.token == '{' or token.token == '}':
-                    tokens.clear()
+                        elif node.production == Symbol.TEMPLATE_CLASS:
+                            tokens = handleTemplateClass( node )
+
+                tokens.clear()
+
 
 
 main( sys.argv )
