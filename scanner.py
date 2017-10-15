@@ -26,6 +26,7 @@ class Token(AutoToken):
     VAR         = auto()
     DOT         = auto()
     VAR_EX      = auto()
+    STRING      = auto()
     EQ          = auto()
     NOT         = auto()
     ASSIGN      = auto()
@@ -49,6 +50,8 @@ def build_patterns():
     return [Scanner( x[0], x[1] ) for x in (
 
         ('//.*\n',                      None),
+        
+        ('"(?:[^\\"]|\\.)*"',           TOKEN.STRING),
 
         ('[\(\)\[\]\},;]',              Token.ANY),
 
