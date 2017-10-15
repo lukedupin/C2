@@ -6,7 +6,7 @@ from scanner import build_patterns, scanner
 from parser import build_productions, build_subproductions, parser, Symbol
 
 from handler_auto_class import handleAutoClass
-from handler_template_class import handleAutoClass
+from handler_template_class import handleTemplateClass
 
 def main( argv ):
     patterns = build_patterns()
@@ -38,13 +38,13 @@ def main( argv ):
 
                 # Go through the indexes, attempting to match a symbol
                 for production in productions:
-                    node, unused = parser( tokens, production.production, production.symbols, production.build, sub_productions )
+                    node, start_idx, end_idx = parser( tokens, production.production, production.symbols, production.build, sub_productions )
                     if node is not None:
                         if node.production == Symbol.AUTO_CLASS:
-                            tokens = handleAutoClass( node )
+                            tokens = handleAutoClass( node, tokens[0:start_idx], tokens[end_idx:] )
 
                         elif node.production == Symbol.TEMPLATE_CLASS:
-                            tokens = handleTemplateClass( node )
+                            tokens = handleTemplateClass( node, tokens[0:start_idx], tokens[end_idx:] )
 
                 tokens.clear()
 

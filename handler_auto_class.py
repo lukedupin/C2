@@ -1,5 +1,8 @@
-from parser import Symbol, SubSymbol
-from scanner import Token
+from parser import Symbol, SubSymbol, Node
+from scanner import Token, ScannerToken
 
-def handleAutoClass( node ):
-    return (node.children[1], node.children[2])
+def handleAutoClass( node, start, end ):
+    tokens = [ ScannerToken( Token.CLASS, "class", node.children[0].line),
+               node.children[0] ]
+
+    return start + tokens + end

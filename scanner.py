@@ -51,7 +51,7 @@ def build_patterns():
 
         ('//.*\n',                      None),
         
-        ('"(?:[^\\"]|\\.)*"',           TOKEN.STRING),
+        ('"(?:[^\\"]|\\.)*"',           Token.STRING),
 
         ('[\(\)\[\]\},;]',              Token.ANY),
 
@@ -79,6 +79,10 @@ def build_patterns():
         ("while",                       Token.WHILE),
 
         ("break",                       Token.BREAK),
+
+        ("template",                    Token.TEMPLATE),
+
+        ("typename",                    Token.TYPENAME),
 
         ('[.]',                         Token.DOT),
 

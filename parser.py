@@ -43,7 +43,11 @@ class Node:
         else:
             self.children = (children, )
 
-    def add_child(self, child):
+    def prepend_child(self, child):
+        self.children.insert( 0, child )
+        return self
+
+    def append_child(self, child):
         self.children.append( child )
         return self
 
@@ -56,13 +60,13 @@ def build_subproductions():
     productions = (
         (SubSymbol.TEMPLATE_LIST,
             (Token.IDENT, ',', SubSymbol.TEMPLATE_LIST),
-            lambda production, tokens: tokens[2].add_child( tokens[0] ) ),
+            lambda production, tokens: tokens[2].prepend_child( tokens[0] ) ),
         (SubSymbol.TEMPLATE_LIST,
             (SubSymbol.DECLARATION_ASSIGN, ',', SubSymbol.TEMPLATE_LIST),
-            lambda production, tokens: tokens[2].add_child( tokens[0] ) ),
+            lambda production, tokens: tokens[2].prepend_child( tokens[0] ) ),
         (SubSymbol.TEMPLATE_LIST,
             (SubSymbol.DECLARATION, ',', SubSymbol.TEMPLATE_LIST),
-            lambda production, tokens: tokens[2].add_child( tokens[0] ) ),
+            lambda production, tokens: tokens[2].prepend_child( tokens[0] ) ),
         (SubSymbol.TEMPLATE_LIST,
             (Token.IDENT),
             lambda production, tokens: Node(production, children=( tokens[0], ) ) ),
@@ -79,7 +83,7 @@ def build_subproductions():
 
         (SubSymbol.DECLARATION_ASSIGN,
             (SubSymbol.TYPE, Token.IDENT, '=', Token.NUMBER),
-            lambda production, tokens: Node(production, children=( tokens[0].children[0], tokens[1], tokens[3]) ) ),
+            lambda production, tokens: Node(production, children=( tokens[0].children[0], tokens[1], tokens[2], tokens[3]) ) ),
 
         (SubSymbol.TYPE,
             (Token.DOUBLE),
@@ -115,21 +119,23 @@ def build_productions():
     )]
 
 
+# Deals with token start
+def token_start( token_idx, symbol, tokens, token_len ):
+    # Is this my first token?  Find the starting place
+    if token_idx is not None:
+        return token_idx
+
+    for t_idx in range(token_len):
+        if tokens[t_idx].token == symbol:
+            return t_idx
+
+    return None
+
+
 def parser( tokens, production, symbols, build, sub_productions, token_idx = None ):
-    # Deals with token start
-    def token_start( token_idx, symbol, tokens, token_len ):
-        # Is this my first token?  Find the starting place
-        if token_idx is not None:
-            return token_idx
-
-        for t_idx in range(token_len):
-            if tokens[t_idx].token == symbol:
-                return t_idx
-
-        return None
-
     #Setup my variables
     token_len = len(tokens)
+    start_idx = token_idx
     nodes = []
 
     # Run through the symbols
@@ -138,20 +144,22 @@ def parser( tokens, production, symbols, build, sub_productions, token_idx = Non
         if not isinstance( symbol, SubSymbol ):
             # Handle the start of the index
             token_idx = token_start( token_idx, symbol, tokens, token_len )
+            if start_idx is None:
+                start_idx = token_idx
             if token_idx is None or token_idx >= token_len:
-                return (None, 0)
+                return (None, 0, 0)
 
             # Go through the tokens, matching them
             if symbol == tokens[token_idx].token:
                 nodes.append( tokens[token_idx] )
             else:
-                return (None, 0)
+                return (None, 0, 0)
             token_idx += 1
 
         elif symbol in sub_productions:
             node = None
             for sub in sub_productions[symbol]:
-                node, token_tmp = parser( tokens, sub.production, sub.symbols, sub.build, sub_productions, token_idx )
+                node, start_tmp, token_tmp = parser( tokens, sub.production, sub.symbols, sub.build, sub_productions, token_idx )
                 if node is not None:
                     token_idx = token_tmp
                     break
@@ -160,9 +168,9 @@ def parser( tokens, production, symbols, build, sub_productions, token_idx = Non
             if node is not None:
                 nodes.append( node )
             else:
-                return (None, 0)
+                return (None, 0, 0)
 
         else:
-            return (None, 0)
+            return (None, 0, 0)
 
-    return build( production, nodes ), token_idx
+    return build( production, nodes ), start_idx, token_idx
