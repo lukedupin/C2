@@ -77,7 +77,7 @@ def build_patterns():
 
         ("typename",                    Token.TYPENAME),
 
-        ("::",                          Token.DOUBLE_COLON)
+        ("::",                          Token.DOUBLE_COLON),
 
         ('[.]',                         Token.DOT),
 

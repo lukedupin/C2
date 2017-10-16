@@ -49,9 +49,13 @@ class Track:
         if index is None:
             tracks = copy.deepcopy(tracks)
             tracks.append( Track( type, {**modifiers} if modifiers is not None else None ) )
+            index = len(tracks) - 1
 
+        # Add in the modifier
+        tracks[index].add_modifier( modifiers, force=False )
         return tracks
 
 
 def write_track( track ):
-    print( track )
+    for line in track.lines:
+        print( " ".join([x.value for x in line]) )

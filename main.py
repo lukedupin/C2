@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys
+import sys, copy
 
 from scanner import scanner
 from parser import parser
@@ -9,7 +9,7 @@ from symbol_table import build_productions, build_subproductions, Symbol
 
 from handler_auto_class import handleAutoClass, tracksAutoClass
 from handler_template_class import handleTemplateClass
-from tracks import write_track, Track
+from tracks import write_track, Track, TrackType
 
 def main( argv ):
     patterns = build_patterns()
@@ -52,8 +52,16 @@ def main( argv ):
                     depth -= 1
 
                 # We've got the raw tokens, now pass that completed set of tokens into the track creates to build out tracks
-                tracks = tracksAutoClass( tokens, matches, depth, tracks )
-                #tracks = tracksTemplateclass( tokens, matches, depth, tracks )
+                handled = False
+                if not handled:
+                    tracks, handled = tracksAutoClass( tokens, matches, depth, tracks )
+                if not handled:
+                    #tracks = tracksTemplateclass( tokens, matches, depth, tracks )
+                    pass
+                if not handled:
+                    tracks = Track.insert_track( tracks, TrackType.SOURCE )
+                    source = Track.find_track( tracks, TrackType.SOURCE )
+                    tracks[source].lines.append( copy.deepcopy(tokens) )
                 tokens.clear()
 
                 # Increase the depth
