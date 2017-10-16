@@ -65,12 +65,14 @@ def tracksAutoClass( tokens, matches, depth, tracks ):
         s_line += copy.deepcopy( track_mod.template_def )
         # Define the function minus function name
         s_line += copy.deepcopy( tokens[0:func] )
-        #Klass name and template info
+        # Klass name and template info
         s_line.append( track_mod.klass )
+        # Insert template?
         if len(track_mod.template) > 0:
             s_line.append( ScannerToken( '<', '<', tokens[0].line) )
             s_line += copy.deepcopy( track_mod.template )
             s_line.append( ScannerToken( '>', '>', tokens[0].line) )
+        #Build out the function name
         s_line.append( ScannerToken(Token.DOUBLE_COLON, '::', tokens[0].line) )
         s_line += copy.deepcopy( tokens[func:] )
         #s_line.append( ScannerToken(';', ';', tokens[0].line) )

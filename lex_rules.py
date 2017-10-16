@@ -16,6 +16,8 @@ class Token(Enum):
     FLOAT       = auto()
     DOUBLE      = auto()
     INT         = auto()
+    VOID        = auto()
+    CHAR        = auto()
     VAR         = auto()
     DOUBLE_COLON = auto()
     DOT         = auto()
@@ -66,6 +68,10 @@ def build_patterns():
         ("float",                       Token.FLOAT),
 
         ("double",                      Token.DOUBLE),
+
+        ("void",                        Token.VOID),
+
+        ("char",                        Token.CHAR),
 
         ("return",                      Token.RETURN),
 

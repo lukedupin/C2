@@ -81,6 +81,12 @@ def build_subproductions():
         (SubSymbol.TYPE,
             (Token.INT),
             lambda production, tokens: Node(production, children=( tokens[0]) ) ),
+        (SubSymbol.TYPE,
+            (Token.VOID),
+            lambda production, tokens: Node(production, children=( tokens[0]) ) ),
+        (SubSymbol.TYPE,
+            (Token.CHAR),
+            lambda production, tokens: Node(production, children=( tokens[0]) ) ),
     )
 
     # Combine the productions down to a hash
