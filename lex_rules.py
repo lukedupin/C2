@@ -17,6 +17,7 @@ class Token(Enum):
     DOUBLE      = auto()
     INT         = auto()
     VAR         = auto()
+    DOUBLE_COLON = auto()
     DOT         = auto()
     VAR_EX      = auto()
     STRING      = auto()
@@ -75,6 +76,8 @@ def build_patterns():
         ("template",                    Token.TEMPLATE),
 
         ("typename",                    Token.TYPENAME),
+
+        ("::",                          Token.DOUBLE_COLON)
 
         ('[.]',                         Token.DOT),
 
