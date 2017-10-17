@@ -1,3 +1,5 @@
+from lex_rules import Token
+from regex_symbol import RegexSymbol
 from symbol_table import SubSymbol
 
 # Deals with token start
@@ -22,7 +24,7 @@ def parser( tokens, production, symbols, build, sub_productions, token_idx = Non
     # Run through the symbols
     for symbol in symbols:
         # Should we recurse the symbol?
-        if not isinstance( symbol, SubSymbol ):
+        if isinstance( symbol, Token ):
             # Handle the start of the index
             token_idx = token_start( token_idx, symbol, tokens, token_len )
             if start_idx is None:
@@ -36,6 +38,13 @@ def parser( tokens, production, symbols, build, sub_productions, token_idx = Non
             else:
                 return (None, 0, 0)
             token_idx += 1
+
+        elif isinstance( symbol, RegexSymbol ):
+            # Can't start or end with a regex match
+            if token_idx is None or token_idx + 1 >= token_len:
+                return (None, 0, 0)
+
+            # Here we are going to look through tokens, matching many of tokens until the next symbol is match based on lazy or greedy rules
 
         elif symbol in sub_productions:
             node = None
