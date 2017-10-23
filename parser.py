@@ -1,5 +1,5 @@
-from lex_rules import Token
-from regex_symbol import RegexSymbol
+from lex_rules import Token, ScannerToken
+from regex_symbol import RegexSymbol, RegexMethod, RegexType
 from symbol_table import SubSymbol
 
 # Deals with token start
@@ -15,6 +15,20 @@ def token_start( token_idx, symbol, tokens, token_len ):
     return None
 
 
+def regex_match( symbol_regex, symbol_token, token_idx, tokens ):
+    valid_idx = None
+    token_len = len(tokens)
+    while token_idx < token_len:
+        if symbol_token.token == tokens[token_idx].token:
+            valid_idx = token_idx
+            if symbol_regex.method == RegexMethod.LAZY:
+                return valid_idx
+
+        token_idx += 1
+
+    return valid_idx
+
+
 def parser( tokens, production, symbols, build, sub_productions, token_idx = None ):
     #Setup my variables
     token_len = len(tokens)
@@ -22,7 +36,7 @@ def parser( tokens, production, symbols, build, sub_productions, token_idx = Non
     nodes = []
 
     # Run through the symbols
-    for symbol in symbols:
+    for symbol, symbol_idx in enumerate( symbols ):
         # Should we recurse the symbol?
         if isinstance( symbol, Token ):
             # Handle the start of the index
@@ -41,10 +55,13 @@ def parser( tokens, production, symbols, build, sub_productions, token_idx = Non
 
         elif isinstance( symbol, RegexSymbol ):
             # Can't start or end with a regex match
-            if token_idx is None or token_idx + 1 >= token_len:
+            if symbol_idx + 1 >= len(symbols) or token_idx is None or token_idx + 1 >= token_len:
                 return (None, 0, 0)
 
             # Here we are going to look through tokens, matching many of tokens until the next symbol is match based on lazy or greedy rules
+            token_idx = regex_match( symbol, symbols[symbol_idx + 1], token_idx + 1, tokens )
+            if token_idx is None:
+                return (None, 0, 0)
 
         elif symbol in sub_productions:
             node = None
