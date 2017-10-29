@@ -17,6 +17,7 @@ class SubSymbol(Enum):
     TEMPLATE_LIST       = auto()
     DECLARATION         = auto()
     DECLARATION_ASSIGN  = auto()
+    PARAM_LIST          = auto()
     TYPE                = auto()
 
 

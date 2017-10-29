@@ -15,8 +15,17 @@ def token_start( token_idx, symbol, tokens, token_len ):
     return None
 
 
-def regex_match( symbol_regex, symbol_token, token_idx, tokens ):
+def regex_match( symbol_regex, symbol_idx, token_idx, symbols, tokens ):
+    # Can't start or end with a regex match
+    if symbol_idx + 1 >= len(symbols) or token_idx is None or token_idx + 1 >= len(tokens):
+        return None
+
+    # Step my tokens forward
+    token_idx += 1
+    symbol_idx += 1
+
     valid_idx = None
+    symbol_token = symbols[symbol_idx]
     token_len = len(tokens)
     while token_idx < token_len:
         if symbol_token.token == tokens[token_idx].token:
@@ -54,12 +63,8 @@ def parser( tokens, production, symbols, build, sub_productions, token_idx = Non
             token_idx += 1
 
         elif isinstance( symbol, RegexSymbol ):
-            # Can't start or end with a regex match
-            if symbol_idx + 1 >= len(symbols) or token_idx is None or token_idx + 1 >= token_len:
-                return (None, 0, 0)
-
             # Here we are going to look through tokens, matching many of tokens until the next symbol is match based on lazy or greedy rules
-            token_idx = regex_match( symbol, symbols[symbol_idx + 1], token_idx + 1, tokens )
+            token_idx = regex_match( symbol, symbol_idx, token_idx, symbols, tokens )
             if token_idx is None:
                 return (None, 0, 0)
 

@@ -1,7 +1,7 @@
 from enum import Enum, auto
 from scanner import Token
 from symbol_table import Production, Node, Symbol, SubSymbol
-from symbol_regex import RegexMethod, RegexSymbol, RegexType
+from regex_symbol import RegexMethod, RegexSymbol, RegexType
 
 
 class Scope(Enum):
@@ -18,10 +18,10 @@ def build_scopes():
         (Scope.CLASS,
             (Token.CLASS, Token.IDENT, RegexSymbol( RegexType.ZERO_OR_MORE, RegexMethod.GREEDY ), '{'),
             lambda production, tokens: Node(production, children=( tokens[1], ) ) ),
-        (Symbol.FUNCTION,
+        (Scope.FUNCTION,
             (SubSymbol.TYPE, Token.IDENT, '(', RegexSymbol( RegexType.ZERO_OR_MORE, RegexMethod.GREEDY ), ')', '{' ),
             lambda production, tokens: Node(production, children=( tokens[0], tokens[1] ) ) ),
-        (Symbol.BLOCK,
+        (Scope.BLOCK,
             ( '{' ),
             lambda production, tokens: Node(production) ),
     )]
