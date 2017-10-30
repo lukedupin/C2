@@ -45,7 +45,7 @@ def parser( tokens, production, symbols, build, sub_productions, token_idx = Non
     nodes = []
 
     # Run through the symbols
-    for symbol, symbol_idx in enumerate( symbols ):
+    for symbol_idx, symbol in enumerate( symbols ):
         # Should we recurse the symbol?
         if isinstance( symbol, Token ):
             # Handle the start of the index

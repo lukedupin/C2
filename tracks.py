@@ -57,5 +57,7 @@ class Track:
 
 
 def write_track( track ):
+    print("")
+    print( track.type )
     for line in track.lines:
         print( " ".join([x.value for x in line]) )

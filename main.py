@@ -37,7 +37,7 @@ def main( argv ):
 
                 # Are we at the end of a statement?
                 if token.token != ';' and token.token != '{' and token.token != '}':
-                    tokens.append( token )
+                    #tokens.append( token )
                     continue
 
                 # Go through the indexes, attempting to match a symbol
@@ -54,7 +54,7 @@ def main( argv ):
                 # We've got the raw tokens, now pass that completed set of tokens into the track creates to build out tracks
                 handled = False
                 if not handled:
-                    tracks, handled = tracksAutoClass( tokens, matches, depth, tracks )
+                    tracks, handled = tracksAutoClass( tokens, matches, len(scope_stack), tracks )
                 if not handled:
                     #tracks = tracksTemplateclass( tokens, matches, depth, tracks )
                     pass
@@ -66,16 +66,21 @@ def main( argv ):
 
                 # Increase the depth
                 if token.token == '{':
-                    scope = Production( Scope.BLOCK )
+                    scope = [x for x in scope_rules if x.production == Scope.BLOCK][0]
                     for s in scope_rules:
                         tmp, unused0, unused1 = parser( tokens, production.production, production.symbols, production.build, sub_productions )
                         if tmp is not None:
                             scope = tmp
                             break
 
-                    scope.append( scope )
+                    scope_stack.append( scope )
                 if token.token == '}':
-                    scope.pop()
+                    scope_stack.pop()
+                    for track in tracks:
+                        keys = [x for x in track.modifiers.keys()]
+                        for key in keys:
+                            if track.modifiers[key].depth == len(scope_stack):
+                                track.modifiers.pop( key, None )
 
         # Dump all the now collected tokens into the output file
         for track in tracks:
