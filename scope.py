@@ -4,7 +4,19 @@ from symbol_table import Production, Node, Symbol, SubSymbol
 from regex_symbol import RegexMethod, RegexSymbol, RegexType
 
 
-class Scope(Enum):
+class ScopeProductionBase:
+    def __init__(self, production):
+        self.production = production
+
+
+class Scope:
+    def __init__(self, symbol, node, productions=[] ):
+        self.symbol = symbol
+        self.node = node
+        self.productions = productions
+
+
+class ScopeSymbol(Enum):
     CLASS               = auto()
     FUNCTION            = auto()
     IF                  = auto()
@@ -13,15 +25,23 @@ class Scope(Enum):
     BLOCK               = auto()
 
 
+def scopeContainsSymbol( scope_stack, symbol ):
+    return any( x.symbol == symbol for x in scope_stack )
+
+
+def scopeTopSymbol( scope_stack, symbol ):
+    return len(scope_stack) > 0 and scope_stack[-1].symbol == symbol
+
+
 def build_scopes():
     return [Production( x[0], x[1], x[2] ) for x in (
-        (Scope.CLASS,
+        (ScopeSymbol.CLASS,
             (Token.CLASS, Token.IDENT, RegexSymbol( RegexType.ZERO_OR_MORE, RegexMethod.GREEDY ), '{'),
             lambda production, tokens: Node(production, children=( tokens[1], ) ) ),
-        (Scope.FUNCTION,
+        (ScopeSymbol.FUNCTION,
             (SubSymbol.TYPE, Token.IDENT, '(', RegexSymbol( RegexType.ZERO_OR_MORE, RegexMethod.GREEDY ), ')', '{' ),
             lambda production, tokens: Node(production, children=( tokens[0], tokens[1] ) ) ),
-        (Scope.BLOCK,
+        (ScopeSymbol.BLOCK,
             ( '{' ),
             lambda production, tokens: Node(production) ),
     )]

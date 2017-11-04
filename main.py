@@ -6,11 +6,11 @@ from scanner import scanner
 from parser import parser
 from lex_rules import build_patterns
 from symbol_table import build_productions, build_subproductions, Symbol, Production
-from scope import build_scopes, Scope
+from scope import build_scopes, Scope, ScopeSymbol
 
 from handler_auto_class import handleAutoClass, tracksAutoClass
 from handler_template_class import handleTemplateClass
-from tracks import write_track, Track, TrackType
+from tracks import write_track, TrackType
 
 def main( argv ):
     patterns = build_patterns()
@@ -22,9 +22,9 @@ def main( argv ):
     argv.pop(0)
     for filename in argv:
         line_count = 0
-        tracks = []
+        file_tracks = { TrackType.SOURCE: [], TrackType.HEADER: [] }
         tokens = []
-        matches = []
+        symbol_matches = []
         scope_stack = []
 
         # Read in the file contents
@@ -37,54 +37,56 @@ def main( argv ):
 
                 # Are we at the end of a statement?
                 if token.token != ';' and token.token != '{' and token.token != '}':
-                    #tokens.append( token )
                     continue
 
                 # Go through the indexes, attempting to match a symbol
                 for production in productions:
                     node, start_idx, end_idx = parser( tokens, production.production, production.symbols, production.build, sub_productions )
                     if node is not None:
-                        matches.append( node.production )
+                        symbol_matches.append( node.production )
                         if node.production == Symbol.AUTO_CLASS:
-                            tokens = handleAutoClass( node, tokens[0:start_idx], tokens[end_idx:] )
+                            tokens = handleAutoClass( node, tokens, start_idx, end_idx )
 
                         elif node.production == Symbol.TEMPLATE_CLASS:
-                            tokens = handleTemplateClass( node, tokens[0:start_idx], tokens[end_idx:] )
+                            tokens = handleTemplateClass( node, tokens, start_idx, end_idx )
 
-                # We've got the raw tokens, now pass that completed set of tokens into the track creates to build out tracks
-                handled = False
-                if not handled:
-                    tracks, handled = tracksAutoClass( tokens, matches, len(scope_stack), tracks )
-                if not handled:
-                    #tracks = tracksTemplateclass( tokens, matches, depth, tracks )
-                    pass
-                if not handled:
-                    tracks = Track.insert_track( tracks, TrackType.SOURCE )
-                    source = Track.find_track( tracks, TrackType.SOURCE )
-                    tracks[source].lines.append( copy.deepcopy(tokens) )
-                tokens.clear()
 
-                # Increase the depth
+                # Copy the tokens into our output tracks
+                line_tokens = { TrackType.SOURCE: copy.deepcopy(tokens), TrackType.HEADER: [] }
+
+                # Increase the depth?
                 if token.token == '{':
-                    scope = [x for x in scope_rules if x.production == Scope.BLOCK][0]
+                    # Setup the default scope rule
+                    node = [x for x in scope_rules if x.production == ScopeSymbol.BLOCK][0]
+
+                    # Attempt to find a better scope rule
                     for s in scope_rules:
                         tmp, unused0, unused1 = parser( tokens, production.production, production.symbols, production.build, sub_productions )
                         if tmp is not None:
-                            scope = tmp
+                            node = tmp
                             break
 
-                    scope_stack.append( scope )
+                    scope_stack.append( Scope( node.production, node ))
+
+
+                ### Run through through all our track processors, allow them to update the output
+                line_tokens = tracksAutoClass( line_tokens, symbol_matches, scope_stack )
+                #tracks = tracksTemplateclass( tokens, matches, depth, tracks )
+
+
+                # We've got our tracks for this line, add them to the file
+                for trk in line_tokens.keys():
+                    file_tracks[trk].append( line_tokens[trk] )
+
+                #Reset my tokens so we can load another line
                 if token.token == '}':
                     scope_stack.pop()
-                    for track in tracks:
-                        keys = [x for x in track.modifiers.keys()]
-                        for key in keys:
-                            if track.modifiers[key].depth == len(scope_stack):
-                                track.modifiers.pop( key, None )
+                symbol_matches.clear()
+                tokens.clear()
 
         # Dump all the now collected tokens into the output file
-        for track in tracks:
-            write_track( track )
+        for trk in file_tracks.keys():
+            write_track( filename, trk, file_tracks[trk] )
 
 
 
