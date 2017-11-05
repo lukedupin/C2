@@ -48,7 +48,8 @@ def main( argv ):
                             tokens = handleAutoClass( node, tokens, start_idx, end_idx )
 
                         elif node.production == Symbol.TEMPLATE_CLASS:
-                            tokens = handleTemplateClass( node, tokens, start_idx, end_idx )
+                            pass
+                            #tokens = handleTemplateClass( node, tokens, start_idx, end_idx )
 
 
                 # Copy the tokens into our output tracks
@@ -61,7 +62,7 @@ def main( argv ):
 
                     # Attempt to find a better scope rule
                     for s in scope_rules:
-                        tmp, unused0, unused1 = parser( tokens, production.production, production.symbols, production.build, sub_productions )
+                        tmp, unused0, unused1 = parser( tokens, s.production, s.symbols, s.build, sub_productions )
                         if tmp is not None:
                             node = tmp
                             break
@@ -76,7 +77,8 @@ def main( argv ):
 
                 # We've got our tracks for this line, add them to the file
                 for trk in line_tokens.keys():
-                    file_tracks[trk].append( line_tokens[trk] )
+                    if len(line_tokens[trk]) > 0:
+                        file_tracks[trk].append( line_tokens[trk] )
 
                 #Reset my tokens so we can load another line
                 if token.token == '}':

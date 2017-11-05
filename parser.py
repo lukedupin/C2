@@ -28,7 +28,7 @@ def regex_match( symbol_regex, symbol_idx, token_idx, symbols, tokens ):
     symbol_token = symbols[symbol_idx]
     token_len = len(tokens)
     while token_idx < token_len:
-        if symbol_token.token == tokens[token_idx].token:
+        if symbol_token == tokens[token_idx].token:
             valid_idx = token_idx
             if symbol_regex.method == RegexMethod.LAZY:
                 return valid_idx
@@ -38,20 +38,30 @@ def regex_match( symbol_regex, symbol_idx, token_idx, symbols, tokens ):
     return valid_idx
 
 
-def parser( tokens, production, symbols, build, sub_productions, token_idx = None ):
+# Main goal here is to find the best match, starting at zero index, to the end
+def parser( tokens, production, symbols, build, sub_productions ):
+    for idx in range( len(tokens) ):
+        node = parser_recurse( tokens, production, symbols, build, sub_productions, idx )
+        if node[0] is not None:
+            return node
+
+    return (None, 0, 0)
+
+
+def parser_recurse( tokens, production, symbols, build, sub_productions, token_idx ):
     #Setup my variables
     token_len = len(tokens)
     start_idx = token_idx
     nodes = []
 
+    # Not happening?
+    if token_idx >= token_len:
+        return (None, 0, 0)
+
     # Run through the symbols
     for symbol_idx, symbol in enumerate( symbols ):
         # Should we recurse the symbol?
-        if isinstance( symbol, Token ):
-            # Handle the start of the index
-            token_idx = token_start( token_idx, symbol, tokens, token_len )
-            if start_idx is None:
-                start_idx = token_idx
+        if isinstance( symbol, Token ) or isinstance( symbol, str ):
             if token_idx is None or token_idx >= token_len:
                 return (None, 0, 0)
 
@@ -65,13 +75,13 @@ def parser( tokens, production, symbols, build, sub_productions, token_idx = Non
         elif isinstance( symbol, RegexSymbol ):
             # Here we are going to look through tokens, matching many of tokens until the next symbol is match based on lazy or greedy rules
             token_idx = regex_match( symbol, symbol_idx, token_idx, symbols, tokens )
-            if token_idx is None:
+            if token_idx is None or token_idx >= token_len:
                 return (None, 0, 0)
 
         elif symbol in sub_productions:
             node = None
             for sub in sub_productions[symbol]:
-                node, start_tmp, token_tmp = parser( tokens, sub.production, sub.symbols, sub.build, sub_productions, token_idx )
+                node, start_tmp, token_tmp = parser_recurse( tokens, sub.production, sub.symbols, sub.build, sub_productions, token_idx )
                 if node is not None:
                     token_idx = token_tmp
                     break
