@@ -33,6 +33,7 @@ def main( argv ):
 
             # Parse the tokens
             for token in scanner( patterns, line, line_count ):
+                token.index = len(tokens)
                 tokens.append( token )
 
                 # Are we at the end of a statement?
@@ -56,7 +57,10 @@ def main( argv ):
                 line_tokens = { TrackType.SOURCE: copy.deepcopy(tokens), TrackType.HEADER: [] }
 
                 # Increase the depth?
+                stack_increased = False
                 if token.token == '{':
+                    stack_increased = True
+
                     # Setup the default scope rule
                     node = [x for x in scope_rules if x.production == ScopeSymbol.BLOCK][0]
 
@@ -71,7 +75,7 @@ def main( argv ):
 
 
                 ### Run through through all our track processors, allow them to update the output
-                line_tokens = tracksAutoClass( line_tokens, symbol_matches, scope_stack )
+                line_tokens = tracksAutoClass( line_tokens, symbol_matches, scope_stack, stack_increased )
                 #tracks = tracksTemplateclass( tokens, matches, depth, tracks )
 
 

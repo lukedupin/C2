@@ -16,15 +16,18 @@ def token_start( token_idx, symbol, tokens, token_len ):
 
 
 def regex_match( symbol_regex, symbol_idx, token_idx, symbols, tokens ):
+    #If we are zero or more, than we are already successful
+    valid_idx = token_idx if symbol_regex.type == RegexType.ZERO_OR_MORE else None
+
     # Can't start or end with a regex match
     if symbol_idx + 1 >= len(symbols) or token_idx is None or token_idx + 1 >= len(tokens):
-        return None
+        return valid_idx
 
     # Step my tokens forward
     token_idx += 1
     symbol_idx += 1
 
-    valid_idx = None
+    #Setup and beging matching
     symbol_token = symbols[symbol_idx]
     token_len = len(tokens)
     while token_idx < token_len:

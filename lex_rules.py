@@ -40,6 +40,7 @@ class ScannerToken:
         self.token = token
         self.value = value
         self.line = line
+        self.index = -1
 
 
 def build_patterns():

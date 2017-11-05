@@ -5,7 +5,7 @@ def handlerContainsSymbol( symbol, symbol_matches, scope_stack ):
         return True
 
     for scope in scope_stack:
-        if any( x.production == symbol for x in scope.productions ):
+        if any( x.production == symbol for x in scope.attributes ):
             return True
 
     return False

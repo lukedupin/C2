@@ -4,16 +4,16 @@ from symbol_table import Production, Node, Symbol, SubSymbol
 from regex_symbol import RegexMethod, RegexSymbol, RegexType
 
 
-class ScopeProductionBase:
+class ScopeAttributeBase:
     def __init__(self, production):
         self.production = production
 
 
 class Scope:
-    def __init__(self, symbol, node, productions=[] ):
+    def __init__(self, symbol, node, attributes=[] ):
         self.symbol = symbol
         self.node = node
-        self.productions = productions
+        self.attributes = attributes
 
 
 class ScopeSymbol(Enum):
