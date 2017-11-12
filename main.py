@@ -42,15 +42,15 @@ def main( argv ):
 
                 # Go through the indexes, attempting to match a symbol
                 for production in productions:
-                    node, start_idx, end_idx = parser( tokens, production.production, production.symbols, production.build, sub_productions )
+                    node = parser( tokens, production.production, production.symbols, production.build, sub_productions )
                     if node is not None:
                         symbol_matches.append( node.production )
                         if node.production == Symbol.AUTO_CLASS:
-                            tokens = handleAutoClass( node, tokens, start_idx, end_idx )
+                            tokens = handleAutoClass( node, tokens )
 
                         elif node.production == Symbol.TEMPLATE_CLASS:
                             pass
-                            #tokens = handleTemplateClass( node, tokens, start_idx, end_idx )
+                            #tokens = handleTemplateClass( node, tokens )
 
 
                 # Copy the tokens into our output tracks

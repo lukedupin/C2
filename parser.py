@@ -59,27 +59,27 @@ def parser_recurse( tokens, production, symbols, build, sub_productions, token_i
 
     # Not happening?
     if token_idx >= token_len:
-        return (None, 0, 0)
+        return None
 
     # Run through the symbols
     for symbol_idx, symbol in enumerate( symbols ):
         # Should we recurse the symbol?
         if isinstance( symbol, Token ) or isinstance( symbol, str ):
             if token_idx is None or token_idx >= token_len:
-                return (None, 0, 0)
+                return None
 
             # Go through the tokens, matching them
             if symbol == tokens[token_idx].token:
                 nodes.append( tokens[token_idx] )
             else:
-                return (None, 0, 0)
+                return None
             token_idx += 1
 
         elif isinstance( symbol, RegexSymbol ):
             # Here we are going to look through tokens, matching many of tokens until the next symbol is match based on lazy or greedy rules
             token_idx = regex_match( symbol, symbol_idx, token_idx, symbols, tokens )
             if token_idx is None or token_idx >= token_len:
-                return (None, 0, 0)
+                return None
 
         elif symbol in sub_productions:
             node = None
@@ -93,9 +93,9 @@ def parser_recurse( tokens, production, symbols, build, sub_productions, token_i
             if node is not None:
                 nodes.append( node )
             else:
-                return (None, 0, 0)
+                return None
 
         else:
-            return (None, 0, 0)
+            return None
 
-    return build( production, nodes ), start_idx, token_idx
+    return build( production, nodes, start_idx, token_idx )

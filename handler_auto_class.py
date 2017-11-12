@@ -14,11 +14,11 @@ class AttributeAutoClass( ScopeAttributeBase ):
         super(AttributeAutoClass, self).__init__( Symbol.AUTO_CLASS )
 
 
-def handleAutoClass( node, tokens, start, end ):
+def handleAutoClass( node, tokens ):
     result = [ ScannerToken( Token.CLASS, "class", node.children[0].line),
                node.children[0] ]
 
-    return tokens[0:start] + result + tokens[end:]
+    return tokens[0:node.start_idx] + result + tokens[node.end_idx:]
 
 
 def tracksAutoClass( line_tokens, symbol_matches, scope_stack, stack_increased ):

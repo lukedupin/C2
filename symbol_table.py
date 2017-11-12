@@ -19,13 +19,15 @@ class SubSymbol(Enum):
     DECLARATION_ASSIGN  = auto()
     PARAM_LIST          = auto()
     TYPE                = auto()
+    KLASS               = auto()
 
 
 class Node:
-    def __init__( self, production, children=[], sibling=None ):
+    def __init__( self, production, children, start_idx, end_idx ):
         self.production = production
         self.children = []
-        self.sibling = sibling
+        self.start_idx = start_idx
+        self.end_idx = end_idx
 
         # Add the children
         if isinstance( children, list ) or isinstance( children, tuple ):
@@ -33,7 +35,7 @@ class Node:
                 self.children.append( c )# if c is Node else Node(c) )
 
         else:
-            self.children = (children, )
+            self.children.append( children )
 
     def prepend_child(self, child):
         self.children.insert( 0, child )
@@ -101,6 +103,10 @@ def build_subproductions():
         (SubSymbol.TYPE,
             (Token.CHAR),
             lambda production, tokens: Node(production, children=( tokens[0]) ) ),
+
+        (SubSymbol.KLASS,
+         (Token.CLASS, Token.IDENT),
+         lambda production, tokens: Node(production, children=tokens[1] ) ),
     )
 
     # Combine the productions down to a hash
@@ -118,9 +124,9 @@ def build_subproductions():
 def build_productions():
     return [Production( x[0], x[1], x[2] ) for x in (
         (Symbol.AUTO_CLASS,
-            (Token.AUTO, Token.CLASS, Token.IDENT),
-            lambda production, tokens: Node(production, children=( tokens[2], ) ) ),
+            (Token.AUTO, SubSymbol.KLASS),
+            lambda production, tokens: Node(production, children=tokens[1] ) ),
         (Symbol.TEMPLATE_CLASS,
-            (Token.CLASS, Token.IDENT, '<', SubSymbol.TEMPLATE_LIST, '>' ),
+            (SubSymbol.KLASS, '<', SubSymbol.TEMPLATE_LIST, '>' ),
             lambda production, tokens: Node(production, children=( tokens[1], tokens[3] ) ) ),
     )]
