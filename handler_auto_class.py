@@ -1,6 +1,6 @@
 import copy
 
-from lex_rules import Token, ScannerToken
+from lex_rules import Token, ScannerToken, Bookmark, BookmarkName
 from symbol_table import Symbol, SubSymbol, Node
 from tracks import TrackType
 from handler_base import handlerContainsSymbol
@@ -11,25 +11,26 @@ class AttributeAutoClass( ScopeAttributeBase ):
         self.klass = klass
         self.template_def = []
         self.template = []
-        super(AttributeAutoClass, self).__init__( Symbol.AUTO_CLASS )
+        super(AttributeAutoClass, self).__init__( Symbol.AUTO_KLASS )
 
 
 def handleAutoClass( node, tokens ):
-    result = [ ScannerToken( Token.CLASS, "class", node.children[0].line),
-               node.children[0] ]
+    klass = copy.deepcopy( node.children[0] ).appendBookmark( BookmarkName.KLASS_NAME )
 
-    return tokens[0:node.start_idx] + result + tokens[node.end_idx:]
+    return tokens[0:node.start_idx] + \
+           [ ScannerToken( Token.KLASS, "class", klass.line), klass ] + \
+           tokens[node.end_idx:]
 
 
 def tracksAutoClass( line_tokens, symbol_matches, scope_stack, stack_increased ):
     # Are we not involved?
-    if not handlerContainsSymbol( Symbol.AUTO_CLASS, symbol_matches, scope_stack ):
+    if not handlerContainsSymbol( Symbol.AUTO_KLASS, symbol_matches, scope_stack ):
         return line_tokens
 
     # Is this the beginning of the class?
-    if any( x == Symbol.AUTO_CLASS for x in symbol_matches ):
+    if any( x == Symbol.AUTO_KLASS for x in symbol_matches ):
         tokens = line_tokens[TrackType.SOURCE]
-        klass_idx = [i for i, a in enumerate(tokens) if a.token == Token.CLASS][0]
+        klass_idx = [i for i, a in enumerate(tokens) if a.token == Token.KLASS][0]
 
         #Move my init into the header
         line_tokens[TrackType.HEADER] = line_tokens[TrackType.SOURCE]
@@ -46,9 +47,9 @@ def tracksAutoClass( line_tokens, symbol_matches, scope_stack, stack_increased )
     elif scopeContainsSymbol( scope_stack, ScopeSymbol.FUNCTION ):
         line = line_tokens[TrackType.SOURCE][0].line
         if stack_increased:
-            klass_stack = [x for x in scope_stack if x.symbol == ScopeSymbol.CLASS][0]
+            klass_stack = [x for x in scope_stack if x.symbol == ScopeSymbol.KLASS][0]
             func_stack = [x for x in scope_stack if x.symbol == ScopeSymbol.FUNCTION][0]
-            attr = [x for x in klass_stack.attributes if x.production == Symbol.AUTO_CLASS][0]
+            attr = [x for x in klass_stack.attributes if x.production == Symbol.AUTO_KLASS][0]
             func_idx = func_stack.node.children[1].index
 
             #Add to teh header

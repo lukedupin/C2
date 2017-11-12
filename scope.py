@@ -17,7 +17,7 @@ class Scope:
 
 
 class ScopeSymbol(Enum):
-    CLASS               = auto()
+    KLASS               = auto()
     FUNCTION            = auto()
     IF                  = auto()
     WHILE               = auto()
@@ -35,8 +35,8 @@ def scopeTopSymbol( scope_stack, symbol ):
 
 def build_scopes():
     return [Production( x[0], x[1], x[2] ) for x in (
-        (ScopeSymbol.CLASS,
-            (Token.CLASS, Token.IDENT, RegexSymbol( RegexType.ZERO_OR_MORE, RegexMethod.GREEDY ), '{'),
+        (ScopeSymbol.KLASS,
+            (Token.KLASS, Token.IDENT, RegexSymbol( RegexType.ZERO_OR_MORE, RegexMethod.GREEDY ), '{'),
             lambda production, tokens: Node(production, children=( tokens[1], ) ) ),
         (ScopeSymbol.FUNCTION,
             (SubSymbol.TYPE, Token.IDENT, '(', RegexSymbol( RegexType.ZERO_OR_MORE, RegexMethod.GREEDY ), ')', '{' ),
@@ -45,3 +45,5 @@ def build_scopes():
             ( '{' ),
             lambda production, tokens: Node(production) ),
     )]
+
+def handleScope( node ):

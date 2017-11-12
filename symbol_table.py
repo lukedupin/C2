@@ -9,8 +9,8 @@ class Production:
 
 
 class Symbol(Enum):
-    AUTO_CLASS          = auto()
-    TEMPLATE_CLASS      = auto()
+    AUTO_KLASS          = auto()
+    TEMPLATE_KLASS      = auto()
 
 
 class SubSymbol(Enum):
@@ -105,7 +105,7 @@ def build_subproductions():
             lambda production, tokens: Node(production, children=( tokens[0]) ) ),
 
         (SubSymbol.KLASS,
-         (Token.CLASS, Token.IDENT),
+         (Token.KLASS, Token.IDENT),
          lambda production, tokens: Node(production, children=tokens[1] ) ),
     )
 
@@ -123,10 +123,10 @@ def build_subproductions():
 
 def build_productions():
     return [Production( x[0], x[1], x[2] ) for x in (
-        (Symbol.AUTO_CLASS,
+        (Symbol.AUTO_KLASS,
             (Token.AUTO, SubSymbol.KLASS),
             lambda production, tokens: Node(production, children=tokens[1] ) ),
-        (Symbol.TEMPLATE_CLASS,
+        (Symbol.TEMPLATE_KLASS,
             (SubSymbol.KLASS, '<', SubSymbol.TEMPLATE_LIST, '>' ),
             lambda production, tokens: Node(production, children=( tokens[1], tokens[3] ) ) ),
     )]

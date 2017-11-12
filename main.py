@@ -45,10 +45,10 @@ def main( argv ):
                     node = parser( tokens, production.production, production.symbols, production.build, sub_productions )
                     if node is not None:
                         symbol_matches.append( node.production )
-                        if node.production == Symbol.AUTO_CLASS:
+                        if node.production == Symbol.AUTO_KLASS:
                             tokens = handleAutoClass( node, tokens )
 
-                        elif node.production == Symbol.TEMPLATE_CLASS:
+                        elif node.production == Symbol.TEMPLATE_KLASS:
                             pass
                             #tokens = handleTemplateClass( node, tokens )
 
@@ -66,7 +66,7 @@ def main( argv ):
 
                     # Attempt to find a better scope rule
                     for s in scope_rules:
-                        tmp, unused0, unused1 = parser( tokens, s.production, s.symbols, s.build, sub_productions )
+                        tmp = parser( tokens, s.production, s.symbols, s.build, sub_productions )
                         if tmp is not None:
                             node = tmp
                             break

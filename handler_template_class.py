@@ -16,7 +16,7 @@ def handleTemplateClass( node, start, end ):
 
     #Add in the class
     tokens += ( ScannerToken( '>', '>', node.children[0].line),
-                ScannerToken( Token.CLASS, "class", node.children[0].line),
+                ScannerToken( Token.KLASS, "class", node.children[0].line),
                 node.children[0])
 
     return start + tokens + end

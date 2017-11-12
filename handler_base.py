@@ -1,4 +1,5 @@
 from symbol_table import Symbol
+from enum import Enum, auto
 
 def handlerContainsSymbol( symbol, symbol_matches, scope_stack ):
     if any( x == symbol for x in symbol_matches ):
@@ -9,4 +10,6 @@ def handlerContainsSymbol( symbol, symbol_matches, scope_stack ):
             return True
 
     return False
+
+
 

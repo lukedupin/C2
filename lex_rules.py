@@ -1,9 +1,29 @@
 from enum import Enum, auto
+import uuid
+
+
+class Bookmark:
+    def __init__(self, name, guid=None, start=-1, end=-1 ):
+        self.name = name
+        self.guid = guid if guid is not None else uuid.uuid4()
+        self.start_idx = start
+        self.end_idx = end
+
+
+class BookmarkName(Enum):
+    # Generic bookmarks
+    KLASS_NAME = auto()
+    FUNCTION_NAME = auto()
+    FUNCTION_RETURN = auto()
+    FUNCTION_PARMAS = auto()
+    IF_PARAMS = auto()
+    FOR_PARAMS = auto()
+
 
 class Token(Enum):
     ANY         = auto()
     AUTO        = auto()
-    CLASS       = auto()
+    KLASS       = auto()
     IF          = auto()
     ELSE        = auto()
     RETURN      = auto()
@@ -36,11 +56,50 @@ class Scanner:
 
 
 class ScannerToken:
-    def __init__(self, token, value, line):
+    def __init__(self, token, value, line, bookmarks=None):
         self.token = token
         self.value = value
         self.line = line
-        self.index = -1
+        self.bookmarks = []
+
+        if isinstance(bookmarks, list) or isinstance(bookmarks, tuple):
+            for b in bookmarks:
+                self.bookmarks.append(b)
+        elif bookmarks is not None:
+            self.bookmarks.append(bookmarks)
+
+    def appendBookmark(self, bookmark, guid=None ):
+        if isinstance( bookmark, BookmarkName ):
+            if guid is None:
+                guid = uuid.uuid4()
+            bookmark = Bookmark( bookmark, guid )
+        assert isinstance( bookmark, Bookmark )
+
+        self.bookmarks.append( bookmark )
+        return self
+
+
+def createBookmark( tokens ):
+    #Create the start and stops for the bookmarks
+    guids = {}
+    for i, token in range(len(tokens)):
+        finished = list(guids.keys())
+        for b in token.bookmarks:
+            if b.guid not in guids:
+                guids[b.guid] = [b.bookmark, i, -1]
+            elif b.guid in finished:
+                finished.remove( b.guid )
+        for f in finished:
+            guids[f][2] = i - 1
+
+    # Build bookmarks
+    bookmarks = {}
+    for key in guids.keys():
+        tup = guids[key]
+        if tup[0] not in bookmarks:
+            bookmarks[tup[0]] = Bookmark( tup[0], key, tup[1], tup[2] )
+
+    return bookmarks
 
 
 def build_patterns():
@@ -56,7 +115,7 @@ def build_patterns():
 
         ("auto",                        Token.AUTO),
 
-        ("class",                       Token.CLASS),
+        ("class",                       Token.KLASS),
 
         ("if",                          Token.IF),
 
