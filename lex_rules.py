@@ -3,8 +3,8 @@ import uuid
 
 
 class Bookmark:
-    def __init__(self, name, guid=None, start=-1, end=-1 ):
-        self.name = name
+    def __init__(self, bookmark, guid=None, start=-1, end=-1 ):
+        self.bookmark = bookmark
         self.guid = guid if guid is not None else uuid.uuid4()
         self.start_idx = start
         self.end_idx = end
@@ -31,6 +31,9 @@ class Token(Enum):
     BREAK       = auto()
     TEMPLATE    = auto()
     TYPENAME    = auto()
+    PUBLIC      = auto()
+    PROTECTED   = auto()
+    PRIVATE     = auto()
     IDENT       = auto()
     NUMBER      = auto()
     FLOAT       = auto()
@@ -75,29 +78,37 @@ class ScannerToken:
             bookmark = Bookmark( bookmark, guid )
         assert isinstance( bookmark, Bookmark )
 
+        #block doubles
+        if any( x.bookmark == bookmark.bookmark for x in self.bookmarks ):
+            return self
+
         self.bookmarks.append( bookmark )
         return self
 
 
-def createBookmark( tokens ):
+def create_bookmark( tokens ):
     #Create the start and stops for the bookmarks
     guids = {}
-    for i, token in range(len(tokens)):
-        finished = list(guids.keys())
+    for i, token in enumerate(tokens):
+        hits = []
         for b in token.bookmarks:
+            hits.append( b.guid )
             if b.guid not in guids:
                 guids[b.guid] = [b.bookmark, i, -1]
-            elif b.guid in finished:
-                finished.remove( b.guid )
-        for f in finished:
-            guids[f][2] = i - 1
+
+        for guid in guids.keys():
+            if guid not in hits and guids[guid][2] < 0:
+                guids[guid][2] = i - 1
 
     # Build bookmarks
     bookmarks = {}
     for key in guids.keys():
         tup = guids[key]
         if tup[0] not in bookmarks:
-            bookmarks[tup[0]] = Bookmark( tup[0], key, tup[1], tup[2] )
+            bookmarks[tup[0]] = []
+        if tup[2] < 0:
+            tup[2] = len(tokens) - 1
+        bookmarks[tup[0]].append( Bookmark( tup[0], key, tup[1], tup[2] ) )
 
     return bookmarks
 
@@ -142,6 +153,10 @@ def build_patterns():
         ("template",                    Token.TEMPLATE),
 
         ("typename",                    Token.TYPENAME),
+
+        ("public",                      Token.PUBLIC),
+        ("private",                     Token.PRIVATE),
+        ("protected",                   Token.PROTECTED),
 
         ("::",                          Token.DOUBLE_COLON),
 

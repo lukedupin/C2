@@ -45,10 +45,10 @@ def regex_match( symbol_regex, symbol_idx, token_idx, symbols, tokens ):
 def parser( tokens, production, symbols, build, sub_productions ):
     for idx in range( len(tokens) ):
         node = parser_recurse( tokens, production, symbols, build, sub_productions, idx )
-        if node[0] is not None:
+        if node is not None:
             return node
 
-    return (None, 0, 0)
+    return None
 
 
 def parser_recurse( tokens, production, symbols, build, sub_productions, token_idx ):
@@ -84,9 +84,9 @@ def parser_recurse( tokens, production, symbols, build, sub_productions, token_i
         elif symbol in sub_productions:
             node = None
             for sub in sub_productions[symbol]:
-                node, start_tmp, token_tmp = parser_recurse( tokens, sub.production, sub.symbols, sub.build, sub_productions, token_idx )
+                node = parser_recurse( tokens, sub.production, sub.symbols, sub.build, sub_productions, token_idx )
                 if node is not None:
-                    token_idx = token_tmp
+                    token_idx = node.end_idx
                     break
 
             # Did the recursion find a hit?  If not we failed

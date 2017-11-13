@@ -4,13 +4,14 @@ import sys, copy
 
 from scanner import scanner
 from parser import parser
-from lex_rules import build_patterns
+from lex_rules import build_patterns, create_bookmark
 from symbol_table import build_productions, build_subproductions, Symbol, Production
-from scope import build_scopes, Scope, ScopeSymbol
+from scope import build_scopes, Scope, ScopeSymbol, handleScope
 
 from handler_auto_class import handleAutoClass, tracksAutoClass
 from handler_template_class import handleTemplateClass
 from tracks import write_track, TrackType
+from end_of_line import is_end_of_line
 
 def main( argv ):
     patterns = build_patterns()
@@ -33,11 +34,10 @@ def main( argv ):
 
             # Parse the tokens
             for token in scanner( patterns, line, line_count ):
-                token.index = len(tokens)
                 tokens.append( token )
 
                 # Are we at the end of a statement?
-                if token.token != ';' and token.token != '{' and token.token != '}':
+                if not is_end_of_line( tokens ):
                     continue
 
                 # Go through the indexes, attempting to match a symbol
@@ -71,11 +71,14 @@ def main( argv ):
                             node = tmp
                             break
 
+                    # Attach the generic bookmarks
+                    tokens = handleScope( node, tokens )
                     scope_stack.append( Scope( node.production, node ))
 
 
                 ### Run through through all our track processors, allow them to update the output
-                line_tokens = tracksAutoClass( line_tokens, symbol_matches, scope_stack, stack_increased )
+                bookmarks = create_bookmark(tokens)
+                line_tokens = tracksAutoClass( line_tokens, bookmarks, symbol_matches, scope_stack, stack_increased )
                 #tracks = tracksTemplateclass( tokens, matches, depth, tracks )
 
 

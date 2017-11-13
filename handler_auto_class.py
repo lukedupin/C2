@@ -22,7 +22,7 @@ def handleAutoClass( node, tokens ):
            tokens[node.end_idx:]
 
 
-def tracksAutoClass( line_tokens, symbol_matches, scope_stack, stack_increased ):
+def tracksAutoClass( line_tokens, bookmarks, symbol_matches, scope_stack, stack_increased ):
     # Are we not involved?
     if not handlerContainsSymbol( Symbol.AUTO_KLASS, symbol_matches, scope_stack ):
         return line_tokens
@@ -30,7 +30,7 @@ def tracksAutoClass( line_tokens, symbol_matches, scope_stack, stack_increased )
     # Is this the beginning of the class?
     if any( x == Symbol.AUTO_KLASS for x in symbol_matches ):
         tokens = line_tokens[TrackType.SOURCE]
-        klass_idx = [i for i, a in enumerate(tokens) if a.token == Token.KLASS][0]
+        klass_idx = bookmarks[BookmarkName.KLASS_NAME][0].start_idx
 
         #Move my init into the header
         line_tokens[TrackType.HEADER] = line_tokens[TrackType.SOURCE]
@@ -38,9 +38,9 @@ def tracksAutoClass( line_tokens, symbol_matches, scope_stack, stack_increased )
 
         #Add a production to my stack
         attr = AttributeAutoClass()
-        attr.klass = tokens[klass_idx + 1]
+        attr.klass = tokens[klass_idx]
         attr.template_def = tokens[0:klass_idx - 1]
-        attr.template = [x for x in tokens[0:klass_idx - 1] if x.token == Token.IDENT or x.token == ',']
+        attr.template = [x for x in tokens[0:klass_idx] if x.token == Token.IDENT or x.token == ',']
         scope_stack[-1].attributes.append( attr )
 
     # Is this the start of a function?
@@ -50,7 +50,7 @@ def tracksAutoClass( line_tokens, symbol_matches, scope_stack, stack_increased )
             klass_stack = [x for x in scope_stack if x.symbol == ScopeSymbol.KLASS][0]
             func_stack = [x for x in scope_stack if x.symbol == ScopeSymbol.FUNCTION][0]
             attr = [x for x in klass_stack.attributes if x.production == Symbol.AUTO_KLASS][0]
-            func_idx = func_stack.node.children[1].index
+            func_idx = bookmarks[BookmarkName.FUNCTION_NAME][0].start_idx
 
             #Add to teh header
             line_tokens[TrackType.HEADER] = line_tokens[TrackType.SOURCE][0:-1] + [ScannerToken(';', ';', line)]
