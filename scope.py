@@ -44,7 +44,7 @@ def build_scopes():
             lambda production, tokens, start, end: Node(production, ( tokens[0], tokens[1] ), start, end ) ),
         (ScopeSymbol.BLOCK,
             ( '{' ),
-            lambda production, tokens, start, end: Node(production, start_idx=start, end_idx=end ) ),
+            lambda production, tokens, start, end: Node(production, [], start, end ) ),
     )]
 
 

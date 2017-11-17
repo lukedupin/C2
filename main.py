@@ -4,7 +4,8 @@ import sys, copy
 
 from scanner import scanner
 from parser import parser
-from lex_rules import build_patterns, create_bookmark
+from lex_rules import build_patterns
+from bookmarks import create_bookmark
 from symbol_table import build_productions, build_subproductions, Symbol, Production
 from scope import build_scopes, Scope, ScopeSymbol, handleScope
 
@@ -49,8 +50,7 @@ def main( argv ):
                             tokens = handleAutoClass( node, tokens )
 
                         elif node.production == Symbol.TEMPLATE_KLASS:
-                            pass
-                            #tokens = handleTemplateClass( node, tokens )
+                            tokens = handleTemplateClass( node, tokens )
 
 
                 # Copy the tokens into our output tracks

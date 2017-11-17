@@ -6,6 +6,7 @@ from tracks import TrackType
 from handler_base import handlerContainsSymbol
 from scope import ScopeAttributeBase, ScopeSymbol, scopeContainsSymbol, scopeTopSymbol
 
+
 class AttributeAutoClass( ScopeAttributeBase ):
     def __init__(self, klass="Unknown"):
         self.klass = klass
