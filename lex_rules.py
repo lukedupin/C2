@@ -27,14 +27,15 @@ class Token(Enum):
     VOID        = auto()
     CHAR        = auto()
     VAR         = auto()
-    DOUBLE_COLON = auto()
+    DOUBLE_COLON= auto()
     DOT         = auto()
     VAR_EX      = auto()
     STRING      = auto()
     EQ          = auto()
     NOT         = auto()
     ASSIGN      = auto()
-    ASSIGN_CONST = auto()
+    ASSIGN_CONST= auto()
+    REFLECTION  = auto()
 
 
 class Scanner:
@@ -119,6 +120,8 @@ def build_patterns():
         ("public",                      Token.PUBLIC),
         ("private",                     Token.PRIVATE),
         ("protected",                   Token.PROTECTED),
+
+        ("reflection",                  Token.REFLECTION),
 
         ("::",                          Token.DOUBLE_COLON),
 

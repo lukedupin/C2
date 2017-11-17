@@ -22,3 +22,6 @@ def handleTemplateClass( node, tokens ):
                 node.children[0])
 
     return tokens[0:node.start_idx] + result + tokens[node.end_idx:]
+
+def tracksTemplateClass( line_tokens, bookmarks, symbol_matches, scope_stack, stack_increased, line_numbers ):
+    return line_tokens

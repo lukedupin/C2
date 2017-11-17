@@ -23,7 +23,7 @@ def handleAutoClass( node, tokens ):
            tokens[node.end_idx:]
 
 
-def tracksAutoClass( line_tokens, bookmarks, symbol_matches, scope_stack, stack_increased ):
+def tracksAutoClass( line_tokens, bookmarks, symbol_matches, scope_stack, stack_increased, line_numbers ):
     # Are we not involved?
     if not handlerContainsSymbol( Symbol.AUTO_KLASS, symbol_matches, scope_stack ):
         return line_tokens
@@ -79,6 +79,11 @@ def tracksAutoClass( line_tokens, bookmarks, symbol_matches, scope_stack, stack_
     else:
         line_tokens[TrackType.HEADER] = line_tokens[TrackType.SOURCE]
         line_tokens[TrackType.SOURCE] = []
+
+        #Add semicolon
+        if len(scope_stack) == 1 and line_tokens[TrackType.HEADER][-1].token == '}':
+            line = line_tokens[TrackType.HEADER][0].line
+            line_tokens[TrackType.HEADER].append( ScannerToken(';', ';', line ))
 
     return line_tokens
 

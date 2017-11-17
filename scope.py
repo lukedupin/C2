@@ -11,7 +11,7 @@ class ScopeAttributeBase:
 
 
 class Scope:
-    def __init__(self, symbol, node, attributes=[] ):
+    def __init__(self, symbol, node, attributes ):
         self.symbol = symbol
         self.node = node
         self.attributes = attributes

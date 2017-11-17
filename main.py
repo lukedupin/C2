@@ -10,7 +10,8 @@ from symbol_table import build_productions, build_subproductions, Symbol, Produc
 from scope import build_scopes, Scope, ScopeSymbol, handleScope
 
 from handler_auto_class import handleAutoClass, tracksAutoClass
-from handler_template_class import handleTemplateClass
+from handler_template_class import handleTemplateClass, tracksTemplateClass
+from handler_reflection import handleReflection, tracksReflection
 from tracks import write_track, TrackType
 from end_of_line import is_end_of_line
 
@@ -35,7 +36,7 @@ def main( argv ):
 
             # Parse the tokens
             for token in scanner( patterns, line, line_count ):
-                tokens.append( token )
+                tokens.append( copy.deepcopy( token ) )
 
                 # Are we at the end of a statement?
                 if not is_end_of_line( tokens ):
@@ -51,6 +52,9 @@ def main( argv ):
 
                         elif node.production == Symbol.TEMPLATE_KLASS:
                             tokens = handleTemplateClass( node, tokens )
+
+                        elif node.production == Symbol.REFLECTION:
+                            tokens = handleReflection( node, tokens )
 
 
                 # Copy the tokens into our output tracks
@@ -73,13 +77,16 @@ def main( argv ):
 
                     # Attach the generic bookmarks
                     tokens = handleScope( node, tokens )
-                    scope_stack.append( Scope( node.production, node ))
+                    ss = Scope( node.production, node, list() )
+                    scope_stack.append( ss )
 
 
                 ### Run through through all our track processors, allow them to update the output
+                line_numbers = {key: len(line_tokens[key]) for key in line_tokens.keys()}
                 bookmarks = create_bookmark(tokens)
-                line_tokens = tracksAutoClass( line_tokens, bookmarks, symbol_matches, scope_stack, stack_increased )
-                #tracks = tracksTemplateclass( tokens, matches, depth, tracks )
+                line_tokens = tracksReflection( line_tokens, bookmarks, symbol_matches, scope_stack, stack_increased, line_numbers )
+                line_tokens = tracksTemplateClass( line_tokens, bookmarks, symbol_matches, scope_stack, stack_increased, line_numbers )
+                line_tokens = tracksAutoClass( line_tokens, bookmarks, symbol_matches, scope_stack, stack_increased, line_numbers )
 
 
                 # We've got our tracks for this line, add them to the file

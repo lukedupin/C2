@@ -11,6 +11,7 @@ class Production:
 class Symbol(Enum):
     AUTO_KLASS          = auto()
     TEMPLATE_KLASS      = auto()
+    REFLECTION          = auto()
 
 
 class SubSymbol(Enum):
@@ -125,4 +126,7 @@ def build_productions():
         (Symbol.TEMPLATE_KLASS,
             (Token.KLASS, Token.IDENT, '<', SubSymbol.TEMPLATE_LIST, '>' ),
             lambda production, tokens, start, end: Node(production, ( tokens[1], tokens[3] ), start, end ) ),
+        (Symbol.REFLECTION,
+            (Token.REFLECTION, ':' ),
+            lambda production, tokens, start, end: Node(production, [], start, end ) ),
     )]
