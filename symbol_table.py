@@ -1,5 +1,6 @@
 from enum import Enum, auto
 from scanner import Token
+from regex_symbol import RegexSymbol, RegexType, RegexMethod
 
 class Production:
     def __init__(self, production, symbols, build ):
@@ -120,13 +121,13 @@ def build_subproductions():
 
 def build_productions():
     return [Production( x[0], x[1], x[2] ) for x in (
+        (Symbol.REFLECTION,
+             (Token.REFLECTION, Token.KLASS ),
+             lambda production, tokens, start, end: Node(production, [], start, end ) ),
         (Symbol.AUTO_KLASS,
-            (Token.AUTO, Token.KLASS, Token.IDENT),
-            lambda production, tokens, start, end: Node(production, tokens[2], start, end ) ),
+             (Token.AUTO, Token.KLASS, Token.IDENT),
+             lambda production, tokens, start, end: Node(production, tokens[2], start, end ) ),
         (Symbol.TEMPLATE_KLASS,
             (Token.KLASS, Token.IDENT, '<', SubSymbol.TEMPLATE_LIST, '>' ),
             lambda production, tokens, start, end: Node(production, ( tokens[1], tokens[3] ), start, end ) ),
-        (Symbol.REFLECTION,
-            (Token.REFLECTION, ':' ),
-            lambda production, tokens, start, end: Node(production, [], start, end ) ),
     )]

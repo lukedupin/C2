@@ -5,37 +5,40 @@ import uuid
 
 class Token(Enum):
     ANY         = auto()
-    AUTO        = auto()
-    KLASS       = auto()
-    IF          = auto()
-    ELSE        = auto()
-    RETURN      = auto()
-    WHILE       = auto()
-    FOR         = auto()
-    FOREACH     = auto()
-    BREAK       = auto()
-    TEMPLATE    = auto()
-    TYPENAME    = auto()
-    PUBLIC      = auto()
-    PROTECTED   = auto()
-    PRIVATE     = auto()
-    IDENT       = auto()
-    NUMBER      = auto()
-    FLOAT       = auto()
-    DOUBLE      = auto()
-    INT         = auto()
-    VOID        = auto()
-    CHAR        = auto()
-    VAR         = auto()
-    DOUBLE_COLON= auto()
-    DOT         = auto()
-    VAR_EX      = auto()
-    STRING      = auto()
-    EQ          = auto()
-    NOT         = auto()
     ASSIGN      = auto()
     ASSIGN_CONST= auto()
+    AUTO        = auto()
+    CHAR        = auto()
+    BREAK       = auto()
+    DOT         = auto()
+    DOUBLE      = auto()
+    DOUBLE_COLON= auto()
+    ELSE        = auto()
+    EQ          = auto()
+    FLOAT       = auto()
+    FOR         = auto()
+    FOREACH     = auto()
+    IDENT       = auto()
+    IF          = auto()
+    INT         = auto()
+    KLASS       = auto()
+    NOT         = auto()
+    NUMBER      = auto()
+    PRIVATE     = auto()
+    PRE_PROC_DEFINE = auto()
+    PRE_PROC_INCLUDE = auto()
+    PRE_PROC_ANY = auto()
+    PROTECTED   = auto()
+    PUBLIC      = auto()
     REFLECTION  = auto()
+    RETURN      = auto()
+    STRING      = auto()
+    TEMPLATE    = auto()
+    TYPENAME    = auto()
+    VAR         = auto()
+    VAR_EX      = auto()
+    VOID        = auto()
+    WHILE       = auto()
 
 
 class Scanner:
@@ -122,6 +125,10 @@ def build_patterns():
         ("protected",                   Token.PROTECTED),
 
         ("reflection",                  Token.REFLECTION),
+
+        ("^#include .*",                Token.PRE_PROC_INCLUDE),
+        ("^#define .*",                 Token.PRE_PROC_DEFINE),
+        ("^#.*",                        Token.PRE_PROC_ANY),
 
         ("::",                          Token.DOUBLE_COLON),
 

@@ -37,10 +37,10 @@ def scopeTopSymbol( scope_stack, symbol ):
 def build_scopes():
     return [Production( x[0], x[1], x[2] ) for x in (
         (ScopeSymbol.KLASS,
-            (Token.KLASS, Token.IDENT, RegexSymbol( RegexType.ZERO_OR_MORE, RegexMethod.GREEDY ), '{'),
+            (Token.KLASS, Token.IDENT, RegexSymbol( RegexType.GREATER_OR_EQUAL, RegexMethod.GREEDY, 0 ), '{'),
             lambda production, tokens, start, end: Node(production, tokens[1], start, end ) ),
         (ScopeSymbol.FUNCTION,
-            (SubSymbol.TYPE, Token.IDENT, '(', RegexSymbol( RegexType.ZERO_OR_MORE, RegexMethod.GREEDY ), ')', '{' ),
+            (SubSymbol.TYPE, Token.IDENT, '(', RegexSymbol( RegexType.GREATER_OR_EQUAL, RegexMethod.GREEDY, 0 ), ')', '{' ),
             lambda production, tokens, start, end: Node(production, ( tokens[0], tokens[1] ), start, end ) ),
         (ScopeSymbol.BLOCK,
             ( '{' ),

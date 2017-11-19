@@ -17,7 +17,7 @@ def token_start( token_idx, symbol, tokens, token_len ):
 
 def regex_match( symbol_regex, symbol_idx, token_idx, symbols, tokens ):
     #If we are zero or more, than we are already successful
-    valid_idx = token_idx if symbol_regex.type == RegexType.ZERO_OR_MORE else None
+    valid_idx = token_idx if symbol_regex.type == RegexType.GREATER_OR_EQUAL and symbol_regex.count <= 0 else None
 
     # Can't start or end with a regex match
     if symbol_idx + 1 >= len(symbols) or token_idx is None or token_idx + 1 >= len(tokens):
@@ -27,16 +27,32 @@ def regex_match( symbol_regex, symbol_idx, token_idx, symbols, tokens ):
     token_idx += 1
     symbol_idx += 1
 
+    # Pre conditions
+    match_count = 0
+
     #Setup and beging matching
     symbol_token = symbols[symbol_idx]
     token_len = len(tokens)
     while token_idx < token_len:
         if symbol_token == tokens[token_idx].token:
-            valid_idx = token_idx
+            if symbol_regex.type == RegexType.EQUAL and match_count == symbol_regex.count:
+                valid_idx = token_idx
+            elif symbol_regex.type == RegexType.GREATER_OR_EQUAL and match_count >= symbol_regex.count:
+                valid_idx = token_idx
+            elif symbol_regex.type == RegexType.LESSER_OR_EQUAL and match_count <= symbol_regex.count:
+                valid_idx = token_idx
+            else:
+                valid_idx = None
+
             if symbol_regex.method == RegexMethod.LAZY:
                 return valid_idx
 
+        # Are we matching the tokens we ment to?
+        if symbol_regex.token is not None and symbol_regex.token != tokens[token_idx].token:
+            return valid_idx
+
         token_idx += 1
+        match_count += 1
 
     return valid_idx
 

@@ -7,11 +7,14 @@ class RegexMethod(Enum):
 
 
 class RegexType(Enum):
-    ZERO_OR_MORE        = auto()
-    ONE_OR_MORE         = auto()
+    GREATER_OR_EQUAL    = auto()
+    LESSER_OR_EQUAL     = auto()
+    EQUAL               = auto()
 
 
 class RegexSymbol:
-    def __init__(self, type, method):
+    def __init__( self, type, method, count, token=None ):
         self.type = type
         self.method = method
+        self.count = count
+        self.token = token

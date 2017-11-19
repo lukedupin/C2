@@ -11,14 +11,14 @@ class AttributeReflection( ScopeAttributeBase ):
     def __init__(self, insert_line ):
         self.insert_line = insert_line
         self.klass = "None"
-        self.members = { Token.PUBLIC: [], Token.PROTECTED: [], Token.PRIVATE: [] }
-        self.functions = { Token.PUBLIC: [], Token.PROTECTED: [], Token.PRIVATE: [] }
+        self.members = []
+        self.functions = []
         super(AttributeReflection, self).__init__( Symbol.REFLECTION )
 
 
 def handleReflection( node, tokens ):
     #All we do here is remove the "reflection" We'll store the insert line in the tracks
-    return tokens[0:node.start_idx] + tokens[node.end_idx:]
+    return tokens[0:node.start_idx] + tokens[node.end_idx - 1:]
 
 
 def tracksReflection( line_tokens, bookmarks, symbol_matches, scope_stack, stack_increased, line_numbers ):
@@ -43,7 +43,23 @@ def tracksReflection( line_tokens, bookmarks, symbol_matches, scope_stack, stack
         tokens = line_tokens[TrackType.SOURCE]
 
         # Define the function minus function name
-        attr.functions[Token.PUBLIC].append( tokens[func_idx].value )
+        attr.functions.append( tokens[func_idx].value )
+
+    #Are we writing out the reflections?
+    elif scope_stack[-1].symbol == ScopeSymbol.KLASS and line_tokens[TrackType.SOURCE][0].token == '}':
+        klass_stack = [x for x in scope_stack if x.symbol == ScopeSymbol.KLASS][0]
+        attr = [x for x in klass_stack.attributes if x.production == Symbol.REFLECTION][0]
+
+        ary = []
+        ary.append( ScannerToken( Token.ANY, "char** getFunctionNames() { return ", -1))
+        for idx, func in enumerate( attr.functions ):
+            if idx <= 0:
+                ary.append( ScannerToken( Token.ANY, '{ "%s"' % func, -1))
+            else:
+                ary.append( ScannerToken( Token.ANY, ', "%s"' % func, -1))
+        ary.append( ScannerToken( Token.ANY, "}; }", -1))
+
+        line_tokens[TrackType.SOURCE] = ary + line_tokens[TrackType.SOURCE]
 
     return line_tokens
 
